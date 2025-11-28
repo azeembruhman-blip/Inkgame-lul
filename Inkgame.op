@@ -1,0 +1,102 @@
+local LibraryUrl = "https://raw.githubusercontent.com/Vovabro46/trash/refs/heads/main/Test.lua"
+local Success, Library = pcall(function()
+    return loadstring(game:HttpGet(LibraryUrl))()
+end)
+
+if not Success then
+    warn("Failed to load Onyx Library!")
+    return
+end
+
+Library:Watermark("NotHub inkgames| v2.3")
+local Window = Library:Window("NotHub")
+
+local Icons = {
+    Discord = "7733917120",
+    Info = "7733771472"
+}
+
+Window:Section("Discord Access")
+local DiscordTab = Window:Tab("Discord", Icons.Discord)
+local InfoTab = Window:Tab("Information", Icons.Info)
+
+local DiscordGroup = DiscordTab:SubTab("Discord Invite")
+local InfoGroup = InfoTab:SubTab("Script Info")
+
+DiscordGroup:AddLabel("Join our Discord to get the script!")
+DiscordGroup:AddParagraph({
+    Title = "Access Required",
+    Content = "The full script is available exclusively in our Discord server. Join to get access to all features.",
+    TextWrapped = true
+})
+
+DiscordGroup:AddButton({
+    Title = "Copy Discord Link",
+    Callback = function()
+        local DISCORD_INVITE = "https://discord.gg/5HjsuDqz"
+        if setclipboard then
+            setclipboard(DISCORD_INVITE)
+            Library:Notify("Discord link copied to clipboard!", 3)
+        end
+        
+        if syn and syn.request then
+            syn.request({
+                Url = "http://127.0.0.1:6463/rpc?v=1",
+                Method = "POST",
+                Headers = {
+                    ["Content-Type"] = "application/json",
+                    ["Origin"] = "https://discord.com"
+                },
+                Body = game:GetService("HttpService"):JSONEncode({
+                    cmd = "BROWSER_OPEN",
+                    args = {url = DISCORD_INVITE},
+                    nonce = game:GetService("HttpService"):GenerateGUID(false)
+                })
+            })
+        end
+    end
+})
+
+DiscordGroup:AddButton({
+    Title = "Open Discord",
+    Callback = function()
+        local DISCORD_INVITE = "https://discord.gg/5HjsuDqz"
+        if syn and syn.request then
+            syn.request({
+                Url = "http://127.0.0.1:6463/rpc?v=1",
+                Method = "POST",
+                Headers = {
+                    ["Content-Type"] = "application/json",
+                    ["Origin"] = "https://discord.com"
+                },
+                Body = game:GetService("HttpService"):JSONEncode({
+                    cmd = "BROWSER_OPEN",
+                    args = {url = DISCORD_INVITE},
+                    nonce = game:GetService("HttpService"):GenerateGUID(false)
+                })
+            })
+        end
+    end
+})
+
+InfoGroup:AddLabel("Script Information")
+InfoGroup:AddParagraph({
+    Title = "NOT HUB",
+    Content = "A powerful script with various features for enhanced gameplay experience.",
+    TextWrapped = true
+})
+
+InfoGroup:AddLabel("Features:")
+InfoGroup:AddBulletText("Auto Farming System")
+InfoGroup:AddBulletText("Combat Enhancements")
+InfoGroup:AddBulletText("Player Modifications")
+InfoGroup:AddBulletText("Game Specific Features")
+InfoGroup:AddBulletText("Utility Functions")
+
+InfoGroup:AddSeparator()
+
+InfoGroup:AddLabel("Status: Waiting for Discord access")
+InfoGroup:AddLabel("Version: 2.0")
+InfoGroup:AddLabel("Developer: NOT HUB Team")
+
+Library:Notify("Join our Discord to get the full script!", 5)

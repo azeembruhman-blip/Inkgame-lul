@@ -45,7 +45,7 @@ AccessGroup:AddButton({
 AccessGroup:AddButton({
     Title = "Open Discord",
     Callback = function()
-        local DISCORD_INVITE = "https://discord.gg/5HjsuDqz"
+        local DISCORD_INVITE = "https://discord.gg/Gj4pnPPY"
         if syn and syn.request then
             syn.request({
                 Url = "http://127.0.0.1:6463/rpc?v=1",

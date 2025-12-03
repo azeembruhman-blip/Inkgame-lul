@@ -34,7 +34,7 @@ AccessGroup:AddParagraph({
 AccessGroup:AddButton({
     Title = "Copy Discord Link",
     Callback = function()
-        local DISCORD_INVITE = "https://discord.gg/5HjsuDqz"
+        local DISCORD_INVITE = "https://discord.gg/Q2eMEZGG"
         if setclipboard then
             setclipboard(DISCORD_INVITE)
             Library:Notify("Discord link copied to clipboard!", 3)

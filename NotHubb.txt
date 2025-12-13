@@ -1,0 +1,1297 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/6cycczyv6f/Obsidian/refs/heads/main/Library.lua"))()
+
+local Window = Library:CreateWindow({
+    Title = "NOTTHUB",
+    SubTitle = "Ink Game - Complete Features",
+    Position = UDim2.new(0.5, -200, 0.5, -150)
+})
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Lighting = game:GetService("Lighting")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+
+local Maid = {}
+Maid.__index = Maid
+
+function Maid.new()
+    return setmetatable({Tasks = {}}, Maid)
+end
+
+function Maid:Add(task)
+    if typeof(task) == "RBXScriptConnection" or (typeof(task) == "Instance" and task.Destroy) or typeof(task) == "function" then
+        table.insert(self.Tasks, task)
+    end
+    return task
+end
+
+function Maid:Clean()
+    for _, task in ipairs(self.Tasks) do
+        pcall(function()
+            if typeof(task) == "RBXScriptConnection" then
+                task:Disconnect()
+            elseif typeof(task) == "Instance" then
+                task:Destroy()
+            elseif typeof(task) == "function" then
+                task()
+            end
+        end)
+    end
+    table.clear(self.Tasks)
+    self.Tasks = {}
+end
+
+local ScriptMaid = Maid.new()
+
+local function Notification(message, time)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Notthub",
+            Text = tostring(message),
+            Duration = time or 3
+        })
+    end)
+end
+
+local function Alert(message, duration)
+    Notification(message, duration or 5)
+end
+
+local function GetRootPart()
+    local char = Player.Character
+    if not char then return nil end
+    return char:FindFirstChild("HumanoidRootPart")
+end
+
+local function GetHumanoid()
+    local char = Player.Character
+    if not char then return nil end
+    return char:FindFirstChild("Humanoid")
+end
+
+local function CompleteDalgonaGame()
+    Alert("Completing Dalgona Game")
+    
+    local DalgonaRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("DALGONATEMPREMPTE")
+    if DalgonaRemote then
+        DalgonaRemote:FireServer({Success = true})
+        DalgonaRemote:FireServer({Completed = true})
+    end
+    
+    Alert("Dalgona Game Completed")
+end
+
+local function RevealGlassBridge()
+    local glassHolder = Workspace:FindFirstChild("GlassBridge") and Workspace.GlassBridge:FindFirstChild("GlassHolder")
+    if not glassHolder then
+        Alert("GlassHolder not found")
+        return
+    end
+    
+    for _, tilePair in pairs(glassHolder:GetChildren()) do
+        for _, tileModel in pairs(tilePair:GetChildren()) do
+            if tileModel:IsA("Model") and tileModel.PrimaryPart then
+                local isBreakable = tileModel.PrimaryPart:GetAttribute("exploitingisevil") == true
+                local targetColor = isBreakable and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 0)
+                
+                for _, part in pairs(tileModel:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        TweenService:Create(part, TweenInfo.new(0.5), {
+                            Color = targetColor,
+                            Transparency = 0.5
+                        }):Play()
+                    end
+                end
+                
+                local highlight = Instance.new("Highlight")
+                highlight.FillColor = targetColor
+                highlight.FillTransparency = 0.7
+                highlight.OutlineColor = targetColor
+                highlight.OutlineTransparency = 0.5
+                highlight.Parent = tileModel
+            end
+        end
+    end
+    
+    Alert("Glass Bridge Revealed - Red: Breakable, Green: Safe")
+end
+
+local function BypassRagdoll()
+    local character = Player.Character
+    if not character then return end
+    
+    character.ChildAdded:Connect(function(child)
+        if child.Name == "Ragdoll" then
+            child:Destroy()
+            local humanoid = character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.PlatformStand = false
+                humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+            end
+        end
+    end)
+    
+    for _, child in ipairs(character:GetChildren()) do
+        if child.Name == "Ragdoll" then
+            child:Destroy()
+        end
+    end
+    
+    Alert("Ragdoll Bypass Enabled")
+end
+
+local function WinRLGL()
+    local root = GetRootPart()
+    if not root then return end
+    root.CFrame = CFrame.new(-100.8, 1030, 115)
+    Alert("Teleported to RLGL End")
+end
+
+local function WinJumpRope()
+    local root = GetRootPart()
+    if not root then return end
+    root.CFrame = CFrame.new(732.4, 197.14, 931.1644)
+    Alert("Teleported to Jump Rope End")
+end
+
+local function TeleportSafe()
+    local root = GetRootPart()
+    if not root then return end
+    root.CFrame = CFrame.new(-108, 329.1, 462.1)
+    Alert("Teleported to Safe Zone")
+end
+
+local function WinGlassBridge()
+    local root = GetRootPart()
+    if not root then return end
+    root.CFrame = CFrame.new(-203.9, 525.7, -1534.3485)
+    Alert("Teleported to Glass Bridge End")
+end
+
+local function TeleportSafeHidingSpot()
+    local root = GetRootPart()
+    if not root then return end
+    root.CFrame = CFrame.new(229.9, 1005.3, 169.4)
+    Alert("Teleported to Safe Hiding Spot")
+end
+
+local tools = {"Fork", "Bottle", "Knife", "Power Hold", "Push"}
+
+local function GetFork()
+    local char = Player.Character
+    if not char then return nil end
+    
+    for _, toolName in pairs(tools) do
+        local tool = char:FindFirstChild(toolName) or Player.Backpack:FindFirstChild(toolName)
+        if tool then
+            return tool
+        end
+    end
+    return nil
+end
+
+local function GetNearestEnemy(maxDist)
+    maxDist = maxDist or 15
+    local closest, closestDist = nil, math.huge
+    local myRoot = GetRootPart()
+    if not myRoot then return nil end
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= Player and player.Character then
+            local targetRoot = player.Character:FindFirstChild("HumanoidRootPart")
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            
+            if targetRoot and humanoid and humanoid.Health > 0 then
+                local dist = (myRoot.Position - targetRoot.Position).Magnitude
+                if dist < closestDist and dist <= maxDist then
+                    closest = targetRoot
+                    closestDist = dist
+                end
+            end
+        end
+    end
+    
+    return closest
+end
+
+local function FireForkRemote()
+    local fork = GetFork()
+    if not fork then return end
+    
+    if fork.Parent == Player.Backpack then
+        local humanoid = GetHumanoid()
+        if humanoid then
+            humanoid:EquipTool(fork)
+        end
+        fork = GetFork()
+    end
+    
+    if fork then
+        local args = {
+            "UsingMoveCustom",
+            fork,
+            nil,
+            {Clicked = true}
+        }
+        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("UsedTool"):FireServer(unpack(args))
+        
+        local args2 = {
+            "UsingMoveCustom",
+            fork,
+            true,
+            {Clicked = true}
+        }
+        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("UsedTool"):FireServer(unpack(args2))
+    end
+end
+
+local function SetupAntiAFK()
+    local VirtualUser = game:GetService("VirtualUser")
+    ScriptMaid:Add(Player.Idled:Connect(function()
+        VirtualUser:Button2Down(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
+        wait(1)
+        VirtualUser:Button2Up(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
+    end))
+end
+
+local function SetupStaffDetector()
+    local STAFF_GROUP_ID = 12398672
+    local STAFF_MIN_RANK = 120
+    local staffRoles = {
+        [120] = "moderator",
+        [254] = "dev",
+        [255] = "owner"
+    }
+    
+    local function CheckPlayerStaff(player)
+        local success, rank = pcall(function()
+            return player:GetRankInGroup(STAFF_GROUP_ID)
+        end)
+        
+        if success and rank and rank >= STAFF_MIN_RANK then
+            local roleName = staffRoles[rank] or ("rank " .. tostring(rank))
+            Alert("[StaffDetector] Staff detected: " .. player.Name .. " (" .. roleName .. ")", 10)
+            return true
+        end
+        return false
+    end
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= Player then
+            CheckPlayerStaff(player)
+        end
+    end
+    
+    ScriptMaid:Add(Players.PlayerAdded:Connect(function(player)
+        wait(1)
+        CheckPlayerStaff(player)
+    end))
+end
+
+local function SetupLowGFX()
+    local Terrain = Workspace:FindFirstChildOfClass("Terrain")
+    if Terrain then
+        Terrain.WaterWaveSize = 0
+        Terrain.WaterWaveSpeed = 0
+        Terrain.WaterReflectance = 0
+        Terrain.WaterTransparency = 1
+    end
+    
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 9e9
+    
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        if obj:IsA("Part") then
+            obj.Material = Enum.Material.Plastic
+            obj.Reflectance = 0
+        elseif obj:IsA("Decal") then
+            obj.Transparency = 1
+        elseif obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
+            obj.Enabled = false
+        end
+    end
+    
+    Alert("Low GFX Enabled")
+end
+
+local function DisableEffects()
+    local Effects = Workspace:FindFirstChild("Effects")
+    if Effects then
+        Effects:ClearAllChildren()
+        ScriptMaid:Add(Effects.ChildAdded:Connect(function(child)
+            if child.ClassName ~= "Folder" then
+                child:Destroy()
+            end
+        end))
+    end
+    Alert("Effects Disabled")
+end
+
+local function SetupNoInteractDelay()
+    for _, prompt in ipairs(Workspace:GetDescendants()) do
+        if prompt:IsA("ProximityPrompt") then
+            prompt.HoldDuration = 0
+        end
+    end
+    
+    ScriptMaid:Add(Workspace.DescendantAdded:Connect(function(obj)
+        if obj:IsA("ProximityPrompt") then
+            obj.HoldDuration = 0
+        end
+    end))
+    
+    Alert("No Interact Delay Enabled")
+end
+
+local function SetupPromptReach(multiplier)
+    multiplier = multiplier or 1.5
+    for _, prompt in ipairs(Workspace:GetDescendants()) do
+        if prompt:IsA("ProximityPrompt") then
+            prompt.MaxActivationDistance = prompt.MaxActivationDistance * multiplier
+        end
+    end
+    
+    Alert("Prompt Reach Enabled (x" .. multiplier .. ")")
+end
+
+local function SetupInfiniteStamina()
+    RunService.Heartbeat:Connect(function()
+        local char = Player.Character
+        if char then
+            local stamina = char:FindFirstChild("StaminaVal")
+            if stamina then
+                stamina.Value = 100
+            end
+        end
+    end)
+    Alert("Infinite Stamina Enabled")
+end
+
+local function SetupAutoMingle()
+    local RemoteForQTE
+    RunService.Heartbeat:Connect(function()
+        local char = Player.Character
+        if char then
+            if not RemoteForQTE then
+                RemoteForQTE = char:FindFirstChild("RemoteForQTE")
+            end
+            if RemoteForQTE then
+                RemoteForQTE:FireServer()
+            end
+        end
+    end)
+    Alert("Auto Mingle Enabled")
+end
+
+local function SetupAutoPull()
+    RunService.Heartbeat:Connect(function()
+        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("TemporaryReachedBindable"):FireServer({
+            GameQTE = true
+        })
+    end)
+    Alert("Auto Pull Enabled")
+end
+
+local function SetupAntiVoid()
+    local antiVoidPart = Instance.new("Part")
+    antiVoidPart.Size = Vector3.new(10000, 1, 10000)
+    antiVoidPart.Transparency = 0.5
+    antiVoidPart.Material = Enum.Material.ForceField
+    antiVoidPart.Color = Color3.fromRGB(0, 255, 255)
+    antiVoidPart.CanCollide = true
+    antiVoidPart.Anchored = true
+    antiVoidPart.Parent = Workspace
+    
+    ScriptMaid:Add(antiVoidPart)
+    Alert("Anti-Void Enabled")
+end
+
+local function FixCamera()
+    local camera = Workspace.CurrentCamera
+    if camera then
+        camera.CameraType = Enum.CameraType.Custom
+        local humanoid = GetHumanoid()
+        if humanoid then
+            camera.CameraSubject = humanoid
+        end
+    end
+    Alert("Camera Fixed")
+end
+
+local ESPTable = {
+    Player = {},
+    Seeker = {},
+    Hider = {},
+    Guard = {},
+    Door = {},
+    Key = {},
+    EscapeDoor = {}
+}
+
+local function CreateESP(args)
+    if not args.Object then 
+        return nil
+    end
+    
+    local ESPManager = {
+        Object = args.Object,
+        Text = args.Text or "No Text",
+        Color = args.Color or Color3.new(1, 1, 1),
+        Offset = args.Offset or Vector3.new(0, 3, 0),
+        Type = args.Type or "None",
+        Highlights = {},
+        Connections = {}
+    }
+    
+    local tableIndex = #ESPTable[ESPManager.Type] + 1
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Adornee = ESPManager.Object
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.FillColor = ESPManager.Color
+    highlight.FillTransparency = 0.75
+    highlight.OutlineColor = ESPManager.Color
+    highlight.OutlineTransparency = 0
+    highlight.Enabled = true
+    highlight.Parent = ESPManager.Object
+    
+    table.insert(ESPManager.Highlights, highlight)
+    
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Adornee = ESPManager.Object
+    billboardGui.AlwaysOnTop = true
+    billboardGui.ClipsDescendants = false
+    billboardGui.Size = UDim2.new(0, 100, 0, 30)
+    billboardGui.StudsOffset = ESPManager.Offset
+    billboardGui.Parent = ESPManager.Object
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.BackgroundTransparency = 1
+    textLabel.Font = Enum.Font.Oswald
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.Text = ESPManager.Text
+    textLabel.TextColor3 = ESPManager.Color
+    textLabel.TextSize = 22
+    textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+    textLabel.TextStrokeTransparency = 0.75
+    textLabel.Parent = billboardGui
+    
+    function ESPManager:SetColor(newColor)
+        ESPManager.Color = newColor
+        for _, highlight in pairs(ESPManager.Highlights) do
+            highlight.FillColor = newColor
+            highlight.OutlineColor = newColor
+        end
+        textLabel.TextColor3 = newColor
+    end
+    
+    function ESPManager:Destroy()
+        for _, highlight in pairs(ESPManager.Highlights) do
+            highlight:Destroy()
+        end
+        if billboardGui then 
+            billboardGui:Destroy() 
+        end
+        
+        if ESPTable[ESPManager.Type][tableIndex] then
+            ESPTable[ESPManager.Type][tableIndex] = nil
+        end
+        
+        for _, conn in pairs(ESPManager.Connections) do
+            pcall(function()
+                conn:Disconnect()
+            end)
+        end
+    end
+    
+    ESPTable[ESPManager.Type][tableIndex] = ESPManager
+    return ESPManager
+end
+
+local function CreatePlayerESP(player)
+    if player == Player then return end
+    if not player.Character then return end
+    if not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    
+    local esp = CreateESP({
+        Object = player.Character,
+        Text = player.Name,
+        Color = Color3.new(1, 1, 1),
+        Type = "Player"
+    })
+    
+    return esp
+end
+
+local function CreateSeekerESP(player)
+    if player == Player then return end
+    if not player:GetAttribute("IsHunter") then return end
+    if not player.Character then return end
+    
+    local esp = CreateESP({
+        Object = player.Character,
+        Text = player.Name .. " (Seeker)",
+        Color = Color3.new(1, 0, 0),
+        Type = "Seeker"
+    })
+    
+    return esp
+end
+
+local function CreateHiderESP(player)
+    if player == Player then return end
+    if not player:GetAttribute("IsHider") then return end
+    if not player.Character then return end
+    
+    local esp = CreateESP({
+        Object = player.Character,
+        Text = player.Name .. " (Hider)",
+        Color = Color3.new(0, 1, 0),
+        Type = "Hider"
+    })
+    
+    return esp
+end
+
+local function CreateKeyESP(key)
+    if not key:IsA("Model") then return end
+    if not key.PrimaryPart then return end
+    
+    local esp = CreateESP({
+        Object = key,
+        Text = "Key",
+        Color = Color3.new(1, 1, 0),
+        Type = "Key"
+    })
+    
+    return esp
+end
+
+local function CreateDoorESP(door)
+    if not door:IsA("Model") then return end
+    if door.Name ~= "FullDoorAnimated" then return end
+    if not door.PrimaryPart then return end
+    
+    local keyNeeded = door:GetAttribute("KeyNeeded") or "None"
+    local esp = CreateESP({
+        Object = door,
+        Text = "Door (Key: " .. keyNeeded .. ")",
+        Color = Color3.new(0, 0.5, 1),
+        Type = "Door"
+    })
+    
+    return esp
+end
+
+local function CreateGuardESP(guard)
+    if not guard:IsA("Model") then return end
+    if not guard:FindFirstChild("TypeOfGuard") then return end
+    
+    local esp = CreateESP({
+        Object = guard,
+        Text = "Guard",
+        Color = Color3.new(1, 0.5, 1),
+        Type = "Guard"
+    })
+    
+    return esp
+end
+
+local Tabs = {
+    Random = Window:AddTab("Random Features"),
+    RLGL = Window:AddTab("RLGL"),
+    Dalgona = Window:AddTab("Dalgona"),
+    Tug = Window:AddTab("Tug of War"),
+    Hide = Window:AddTab("Hide & Seek"),
+    Jump = Window:AddTab("Jump Rope"),
+    Glass = Window:AddTab("Glass Bridge"),
+    Mingle = Window:AddTab("Mingle"),
+    Rebel = Window:AddTab("Rebel"),
+    Killaura = Window:AddTab("Killaura"),
+    Security = Window:AddTab("Security"),
+    Performance = Window:AddTab("Performance"),
+    Interaction = Window:AddTab("Interaction"),
+    Misc = Window:AddTab("Miscellaneous"),
+    ESP = Window:AddTab("ESP System"),
+    Teleport = Window:AddTab("Teleport")
+}
+
+local RandomGroup = Tabs.Random:AddLeftGroupbox("Player Features")
+local infiniteJumpEnabled = false
+local speedBoostEnabled = false
+local titleEnabled = false
+local CurrentTitleValue = "Rich Millionaire"
+local TitleLoopConnection
+
+local function StartTitleLoop()
+    if TitleLoopConnection then return end
+    TitleLoopConnection = RunService.Heartbeat:Connect(function()
+        if titleEnabled then
+            pcall(function()
+                Player:SetAttribute("_CurrentTitle", CurrentTitleValue)
+            end)
+        end
+    end)
+end
+
+local function StopTitleLoop()
+    if TitleLoopConnection then 
+        TitleLoopConnection:Disconnect()
+        TitleLoopConnection = nil
+    end
+end
+
+RandomGroup:AddToggle("InfiniteJump", {
+    Text = "Infinite Jump",
+    Default = false,
+    Callback = function(Value)
+        infiniteJumpEnabled = Value
+        Alert("Infinite Jump " .. (Value and "Enabled" or "Disabled"))
+    end
+})
+
+RandomGroup:AddToggle("SpeedBoost", {
+    Text = "Speed Boost",
+    Default = false,
+    Callback = function(Value)
+        speedBoostEnabled = Value
+        local h = Player.Character and Player.Character:FindFirstChildOfClass("Humanoid")
+        if h then h.WalkSpeed = speedBoostEnabled and 32 or 16 end
+        Alert("Speed Boost " .. (Value and "On" or "Off"))
+    end
+})
+
+RandomGroup:AddToggle("RichTitle", {
+    Text = "Equip Rich Millionaire Title",
+    Default = false,
+    Callback = function(Value)
+        titleEnabled = Value
+        if Value then
+            StartTitleLoop()
+        else
+            StopTitleLoop()
+            pcall(function() Player:SetAttribute("_CurrentTitle", nil) end)
+        end
+        Alert("Title " .. (Value and "Equipped" or "Unequipped"))
+    end
+})
+
+UserInputService.JumpRequest:Connect(function()
+    if infiniteJumpEnabled then
+        if Player.Character and Player.Character:FindFirstChildOfClass("Humanoid") then
+            pcall(function()
+                Player.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+            end)
+        end
+    end
+end)
+
+local RLGLGroup = Tabs.RLGL:AddLeftGroupbox("RLGL Teleports")
+local RLGL_Teleports = {
+    {"Teleport to RLGL End", CFrame.new(-46.0587921, 1025.23352, 108.6353122)},
+    {"Teleport to RLGL Start", CFrame.new(-48.5137215, 1024.521, -492.023163)},
+    {"Teleport to Spawn", CFrame.new(196.83342, 55.9547985, -90.4745865)},
+}
+
+for i, tele in ipairs(RLGL_Teleports) do
+    RLGLGroup:AddButton("RLGLTeleport"..i, {
+        Text = tele[1],
+        Func = function()
+            local char = Player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                char.HumanoidRootPart.CFrame = tele[2]
+                Alert(tele[1])
+            end
+        end
+    })
+end
+
+RLGLGroup:AddButton("TeleportRandom", {
+    Text = "Teleport to Random Player",
+    Func = function()
+        local list = Players:GetPlayers()
+        if #list > 1 then
+            local r
+            repeat r = list[math.random(1,#list)] until r ~= Player
+            if r.Character and r.Character:FindFirstChild("HumanoidRootPart") then
+                Player.Character.HumanoidRootPart.CFrame = r.Character.HumanoidRootPart.CFrame
+                Alert("Teleported to " .. r.Name)
+            end
+        end
+    end
+})
+
+RLGLGroup:AddButton("TeleportBandage", {
+    Text = "Teleport to Dropped Bandage",
+    Func = function()
+        local bandage = Workspace:FindFirstChild("Effects") and Workspace.Effects:FindFirstChild("DroppedBandage")
+        if bandage and bandage.PrimaryPart then
+            for i = 1, 8 do
+                if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+                    Player.Character.HumanoidRootPart.CFrame = bandage.PrimaryPart.CFrame
+                    task.wait(0.12)
+                end
+            end
+            Alert("Teleported to Bandage")
+        else
+            Alert("Bandage not found")
+        end
+    end
+})
+
+RLGLGroup:AddButton("WinRLGL", {
+    Text = "Win RLGL",
+    Func = WinRLGL
+})
+
+local DalgonaGroup = Tabs.Dalgona:AddLeftGroupbox("Dalgona Game")
+DalgonaGroup:AddButton("CompleteDalgona", {
+    Text = "Complete Dalgona",
+    Func = CompleteDalgonaGame
+})
+
+DalgonaGroup:AddButton("FreeLighter", {
+    Text = "Free Lighter",
+    Func = function()
+        pcall(function() Player:SetAttribute("HasLighter", true) end)
+        Alert("Lighter Granted")
+    end
+})
+
+local TugGroup = Tabs.Tug:AddLeftGroupbox("Tug of War")
+local AutoPullEnabled = false
+TugGroup:AddToggle("AutoPull", {
+    Text = "AUTO PULL",
+    Default = false,
+    Callback = function(Value)
+        AutoPullEnabled = Value
+        if Value then
+            SetupAutoPull()
+        end
+    end
+})
+
+TugGroup:AddButton("PerfectPull", {
+    Text = "Perfect Pull",
+    Func = function()
+        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("TemporaryReachedBindable"):FireServer({
+            GameQTE = true
+        })
+        Alert("Perfect Pull Executed")
+    end
+})
+
+local HideGroup = Tabs.Hide:AddLeftGroupbox("Hide & Seek")
+local AutoKillEnabled = false
+local FollowConnection
+local espEnabled = false
+local ESPList = {}
+
+local function removeESP()
+    for _, gui in pairs(ESPList) do
+        if gui and gui.Parent then gui:Destroy() end
+    end
+    ESPList = {}
+end
+
+local function makeESP()
+    removeESP()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= Player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            local bill = Instance.new("BillboardGui", plr.Character.HumanoidRootPart)
+            bill.Size = UDim2.new(0,100,0,30)
+            bill.AlwaysOnTop = true
+            local label = Instance.new("TextLabel", bill)
+            label.Size = UDim2.new(1,0,1,0)
+            label.BackgroundTransparency = 1
+            label.Text = plr.Name
+            label.TextColor3 = Color3.new(1,1,1)
+            ESPList[#ESPList+1] = bill
+        end
+    end
+end
+
+HideGroup:AddToggle("KillAuraHiders", {
+    Text = "Kill Aura (Hiders)",
+    Default = false,
+    Callback = function(Value)
+        AutoKillEnabled = Value
+        if FollowConnection then FollowConnection:Disconnect() FollowConnection = nil end
+        if Value then
+            FollowConnection = RunService.RenderStepped:Connect(function()
+                if not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then return end
+                local HRP = Player.Character.HumanoidRootPart
+                local target, closest = nil, 99e9
+                for _, plr in pairs(Players:GetPlayers()) do
+                    if plr ~= Player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                        local dist = (HRP.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+                        if dist < closest then
+                            closest = dist
+                            target = plr
+                        end
+                    end
+                end
+                if target then
+                    HRP.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,-3)
+                    FireForkRemote()
+                end
+            end)
+        end
+        Alert("Kill Aura " .. (Value and "Enabled" or "Disabled"))
+    end
+})
+
+HideGroup:AddButton("RemoveSpikes", {
+    Text = "Remove Spikes",
+    Func = function()
+        local map = Workspace:FindFirstChild("HideAndSeekMap")
+        if map and map:FindFirstChild("KillingParts") then
+            map.KillingParts:ClearAllChildren()
+            Alert("Spikes Removed")
+        else
+            Alert("Spikes Not Found")
+        end
+    end
+})
+
+HideGroup:AddButton("TeleportToHider", {
+    Text = "Teleport to Hider",
+    Func = function()
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= Player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                Player.Character.HumanoidRootPart.CFrame = v.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,-3)
+                Alert("Teleported to " .. v.Name)
+                return
+            end
+        end
+        Alert("No hider found")
+    end
+})
+
+HideGroup:AddToggle("PlayerESP", {
+    Text = "ESP (Players)",
+    Default = false,
+    Callback = function(Value)
+        espEnabled = Value
+        if Value then makeESP() else removeESP() end
+        Alert("ESP " .. (Value and "On" or "Off"))
+    end
+})
+
+HideGroup:AddButton("TeleportSafeSpot", {
+    Text = "Teleport to Safe Hiding Spot",
+    Func = TeleportSafeHidingSpot
+})
+
+HideGroup:AddButton("InfiniteStamina", {
+    Text = "Infinite Stamina",
+    Func = SetupInfiniteStamina
+})
+
+local JumpGroup = Tabs.Jump:AddLeftGroupbox("Jump Rope")
+JumpGroup:AddButton("WinJumpRope", {
+    Text = "Win Jump Rope",
+    Func = WinJumpRope
+})
+
+JumpGroup:AddButton("RemoveFallDetection", {
+    Text = "Remove Fall Detection",
+    Func = function()
+        local suc = pcall(function()
+            if Workspace:FindFirstChild("JumpRope") then
+                local jumpRope = Workspace.JumpRope
+                if jumpRope:FindFirstChild("FallColllisionYClient") then
+                    jumpRope.FallColllisionYClient:Destroy()
+                end
+                if jumpRope:FindFirstChild("FallColllisionY") then
+                    jumpRope.FallColllisionY:Destroy()
+                end
+                if jumpRope:FindFirstChild("COLLISIONCHECK") then
+                    jumpRope.COLLISIONCHECK:Destroy()
+                end
+            end
+        end)
+        if suc then
+            Alert("Fall detection removed!")
+        else
+            Alert("Fall detection not found!")
+        end
+    end
+})
+
+local GlassGroup = Tabs.Glass:AddLeftGroupbox("Glass Bridge")
+GlassGroup:AddButton("AutoGlass", {
+    Text = "Auto Glass",
+    Func = WinGlassBridge
+})
+
+GlassGroup:AddButton("GlassESP", {
+    Text = "Glass ESP",
+    Func = RevealGlassBridge
+})
+
+GlassGroup:AddButton("RevealGlassBridge", {
+    Text = "Reveal Glass Bridge",
+    Func = RevealGlassBridge
+})
+
+local MingleGroup = Tabs.Mingle:AddLeftGroupbox("Mingle")
+local autoQTEActive = false
+
+MingleGroup:AddToggle("AutoQTE", {
+    Text = "Auto QTE",
+    Default = false,
+    Callback = function(Value)
+        autoQTEActive = Value
+        if Value then
+            SetupAutoMingle()
+        else
+            Alert("Auto QTE Disabled")
+        end
+    end
+})
+
+local RebelGroup = Tabs.Rebel:AddLeftGroupbox("Rebel")
+RebelGroup:AddButton("BringGuards", {
+    Text = "Bring Guards",
+    Func = function()
+        local Live = Workspace:FindFirstChild("Live")
+        if Live then
+            for _, guard in ipairs(Live:GetChildren()) do
+                if guard:IsA("Model") and guard:FindFirstChild("TypeOfGuard") then
+                    local guardRoot = guard:FindFirstChild("HumanoidRootPart")
+                    local myRoot = GetRootPart()
+                    if guardRoot and myRoot then
+                        guard:PivotTo(myRoot.CFrame * CFrame.new(0, 0, -5))
+                    end
+                end
+            end
+            Alert("Guards Brought")
+        end
+    end
+})
+
+RebelGroup:AddButton("GuardESP", {
+    Text = "Guard ESP",
+    Func = function()
+        local Live = Workspace:FindFirstChild("Live")
+        if Live then
+            for _, guard in ipairs(Live:GetChildren()) do
+                if guard:IsA("Model") and guard:FindFirstChild("TypeOfGuard") then
+                    CreateGuardESP(guard)
+                end
+            end
+            Alert("Guard ESP Enabled")
+        end
+    end
+})
+
+local KillauraGroup = Tabs.Killaura:AddLeftGroupbox("Killaura")
+local KillauraEnabled = false
+local KillauraRange = 15
+local KillauraThread
+
+KillauraGroup:AddToggle("EnableKillaura", {
+    Text = "Enable Killaura",
+    Default = false,
+    Callback = function(Value)
+        KillauraEnabled = Value
+        if Value then
+            KillauraThread = RunService.Heartbeat:Connect(function()
+                local target = GetNearestEnemy(KillauraRange)
+                if target then
+                    local myRoot = GetRootPart()
+                    if myRoot then
+                        myRoot.CFrame = CFrame.new(myRoot.Position, target.Position)
+                        FireForkRemote()
+                    end
+                end
+            end)
+        else
+            if KillauraThread then
+                KillauraThread:Disconnect()
+                KillauraThread = nil
+            end
+        end
+        Alert("Killaura " .. (Value and "Enabled" or "Disabled"))
+    end
+})
+
+KillauraGroup:AddSlider("KillauraRange", {
+    Text = "Killaura Range",
+    Min = 5,
+    Max = 30,
+    Default = 15,
+    Rounding = 1,
+    Callback = function(Value)
+        KillauraRange = Value
+    end
+})
+
+local SecurityGroup = Tabs.Security:AddLeftGroupbox("Security")
+SecurityGroup:AddToggle("AntiAFK", {
+    Text = "Anti-AFK",
+    Default = true,
+    Callback = function(Value)
+        if Value then
+            SetupAntiAFK()
+        else
+            Alert("Anti-AFK Disabled")
+        end
+    end
+})
+
+SecurityGroup:AddToggle("StaffDetector", {
+    Text = "Staff Detector",
+    Default = true,
+    Callback = function(Value)
+        if Value then
+            SetupStaffDetector()
+        else
+            Alert("Staff Detector Disabled")
+        end
+    end
+})
+
+local PerformanceGroup = Tabs.Performance:AddLeftGroupbox("Performance")
+PerformanceGroup:AddToggle("LowGFX", {
+    Text = "Low GFX",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            SetupLowGFX()
+        else
+            Alert("Low GFX Disabled")
+        end
+    end
+})
+
+PerformanceGroup:AddToggle("DisableEffects", {
+    Text = "Disable Effects",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            DisableEffects()
+        else
+            Alert("Effects Enabled")
+        end
+    end
+})
+
+PerformanceGroup:AddButton("ClearEffects", {
+    Text = "Clear Effects",
+    Func = function()
+        local Effects = Workspace:FindFirstChild("Effects")
+        if Effects then
+            Effects:ClearAllChildren()
+            Alert("Effects Cleared")
+        end
+    end
+})
+
+local InteractionGroup = Tabs.Interaction:AddLeftGroupbox("Interaction")
+InteractionGroup:AddToggle("NoInteractDelay", {
+    Text = "No Interact Delay",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            SetupNoInteractDelay()
+        else
+            Alert("Interact Delay Restored")
+        end
+    end
+})
+
+InteractionGroup:AddToggle("PromptReach", {
+    Text = "Prompt Reach",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            SetupPromptReach(1.5)
+        else
+            Alert("Prompt Reach Disabled")
+        end
+    end
+})
+
+local MiscGroup = Tabs.Misc:AddLeftGroupbox("Miscellaneous")
+MiscGroup:AddToggle("AntiRagdoll", {
+    Text = "Anti-Ragdoll",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            BypassRagdoll()
+            Alert("Anti-Ragdoll Enabled")
+        else
+            Alert("Anti-Ragdoll Disabled")
+        end
+    end
+})
+
+MiscGroup:AddButton("RemoveRagdoll", {
+    Text = "Remove Ragdoll Effect",
+    Func = BypassRagdoll
+})
+
+MiscGroup:AddButton("FixCamera", {
+    Text = "Fix Camera",
+    Func = FixCamera
+})
+
+MiscGroup:AddButton("ResetCamera", {
+    Text = "Reset Camera",
+    Func = FixCamera
+})
+
+MiscGroup:AddButton("SkipCutscene", {
+    Text = "Skip Cutscene",
+    Func = function()
+        local camera = Workspace.CurrentCamera
+        camera.CameraType = Enum.CameraType.Custom
+        local humanoid = GetHumanoid()
+        if humanoid then
+            camera.CameraSubject = humanoid
+        end
+        Alert("Cutscene Skipped")
+    end
+})
+
+MiscGroup:AddToggle("AntiVoid", {
+    Text = "Anti-Void",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            SetupAntiVoid()
+        else
+            Alert("Anti-Void Disabled")
+        end
+    end
+})
+
+MiscGroup:AddButton("FixPlayersVisibility", {
+    Text = "Fix Players Visibility",
+    Func = function()
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player.Character then
+                for _, part in ipairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.Transparency >= 0.99 then
+                        part.Transparency = 0
+                    end
+                end
+            end
+        end
+        Alert("Players Visibility Fixed")
+    end
+})
+
+local ESPGroup = Tabs.ESP:AddLeftGroupbox("ESP System")
+ESPGroup:AddButton("PlayerESP", {
+    Text = "Player ESP",
+    Func = function()
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= Player then
+                CreatePlayerESP(player)
+            end
+        end
+        Alert("Player ESP Enabled")
+    end
+})
+
+ESPGroup:AddButton("SeekerESP", {
+    Text = "Seeker ESP",
+    Func = function()
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= Player and player:GetAttribute("IsHunter") then
+                CreateSeekerESP(player)
+            end
+        end
+        Alert("Seeker ESP Enabled")
+    end
+})
+
+ESPGroup:AddButton("HiderESP", {
+    Text = "Hider ESP",
+    Func = function()
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= Player and player:GetAttribute("IsHider") then
+                CreateHiderESP(player)
+            end
+        end
+        Alert("Hider ESP Enabled")
+    end
+})
+
+ESPGroup:AddButton("KeyESP", {
+    Text = "Key ESP",
+    Func = function()
+        local Effects = Workspace:FindFirstChild("Effects")
+        if Effects then
+            for _, obj in ipairs(Effects:GetDescendants()) do
+                if obj:IsA("Model") and string.find(obj.Name, "Key") then
+                    CreateKeyESP(obj)
+                end
+            end
+            Alert("Key ESP Enabled")
+        end
+    end
+})
+
+ESPGroup:AddButton("DoorESP", {
+    Text = "Door ESP",
+    Func = function()
+        local hideAndSeekMap = Workspace:FindFirstChild("HideAndSeekMap")
+        if hideAndSeekMap then
+            for _, obj in ipairs(hideAndSeekMap:GetDescendants()) do
+                if obj:IsA("Model") and obj.Name == "FullDoorAnimated" then
+                    CreateDoorESP(obj)
+                end
+            end
+            Alert("Door ESP Enabled")
+        end
+    end
+})
+
+ESPGroup:AddButton("ClearAllESP", {
+    Text = "Clear All ESP",
+    Func = function()
+        for _, espType in pairs(ESPTable) do
+            for _, esp in pairs(espType) do
+                if esp and esp.Destroy then
+                    pcall(esp.Destroy)
+                end
+            end
+            table.clear(espType)
+        end
+        Alert("All ESP Cleared")
+    end
+})
+
+local TeleportGroup = Tabs.Teleport:AddLeftGroupbox("Teleport")
+TeleportGroup:AddButton("TeleportSafeZone", {
+    Text = "Teleport to Safe Zone",
+    Func = TeleportSafe
+})
+
+TeleportGroup:AddButton("TeleportBack", {
+    Text = "Teleport Back",
+    Func = function()
+        Alert("Teleport Back - Save location first using Teleport to Safe Zone")
+    end
+})
+
+SetupAntiAFK()
+SetupStaffDetector()
+Alert("Notthub Loaded!", 4)
+
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+    if player == Player then
+        ScriptMaid:Clean()
+    end
+end)
+
+Library:Init()
